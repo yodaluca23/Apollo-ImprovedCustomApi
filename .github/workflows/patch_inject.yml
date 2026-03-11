@@ -118,10 +118,21 @@ jobs:
         
         # Split the REDIRECTS string
         IFS=',' read -ra SCHEMES <<< "${REDIRECTS}"
+        apollo_exists=false
+        
         for scheme in "${SCHEMES[@]}"; do
           echo "        <string>${scheme}</string>" >> "$plist_path"
+          # Check if 'apollo' is in the list
+          if [[ "$scheme" == "apollo" ]]; then
+            apollo_exists=true
+          fi
         done
         
+        # Add "apollo" only if it wasn't found in the list
+        if [[ "$apollo_exists" == false ]]; then
+          echo "        <string>apollo</string>" >> "$plist_path"
+        fi
+          
         echo "      </array>" >> "$plist_path"
         echo "    </dict>" >> "$plist_path"
         echo "  </array>" >> "$plist_path"
