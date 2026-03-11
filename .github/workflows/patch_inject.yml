@@ -34,6 +34,7 @@ jobs:
         GLASSREPO=$(echo "dankrichtofen/apolloliquidglass")
         echo "GLASSREPO=$GLASSREPO" >> $GITHUB_ENV
         echo "APOLLOREPO=${{ github.event.inputs.APOLLOREPO }}" >> $GITHUB_ENV
+        echo "REDIRECTS=${{ github.event.inputs.REDIRECTS }}" >> $GITHUB_ENV
         echo "componentspath=Build Components" >> $GITHUB_ENV
 
     - name: Set up Python 3.13
@@ -42,7 +43,7 @@ jobs:
         python-version: '3.13'
 
     - name: Install Cyan
-      run: pipx install --force https://github.com/SpotCompiled/pyzule-rw/archive/main.zip
+      run: pipx install --force https://github.com/asdfzxcvbn/pyzule-rw/archive/main.zip
         
     - name: Create Build Components folder
       run: mkdir -p "Build Components"
@@ -102,38 +103,37 @@ jobs:
 
     - name: Create plist to merge
       run: |
-        plist_path = ${{ env.componentspath }}/info.plist
+        plist_path="${{ env.componentspath }}/info.plist"
         
         # Start by creating the header for the plist
-        echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" > $plist_path
-        echo "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">" >> $plist_path
-        echo "<plist version=\"1.0\">" >> $plist_path
-        echo "<dict>" >> $plist_path
-        echo "  <key>CFBundleURLTypes</key>" >> $plist_path
-        echo "  <array>" >> $plist_path
-        echo "    <dict>" >> $plist_path
-        echo "      <key>CFBundleURLSchemes</key>" >> $plist_path
-        echo "      <array>" >> $plist_path
-    
-        # Split the REDIRECTS string into an array and iterate over it
+        echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" > "$plist_path"
+        echo "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">" >> "$plist_path"
+        echo "<plist version=\"1.0\">" >> "$plist_path"
+        echo "<dict>" >> "$plist_path"
+        echo "  <key>CFBundleURLTypes</key>" >> "$plist_path"
+        echo "  <array>" >> "$plist_path"
+        echo "    <dict>" >> "$plist_path"
+        echo "      <key>CFBundleURLSchemes</key>" >> "$plist_path"
+        echo "      <array>" >> "$plist_path"
+        
+        # Split the REDIRECTS string
         IFS=',' read -ra SCHEMES <<< "${REDIRECTS}"
         for scheme in "${SCHEMES[@]}"; do
-          echo "        <string>${scheme}</string>" >> $plist_path
+          echo "        <string>${scheme}</string>" >> "$plist_path"
         done
-    
-        echo "      </array>" >> $plist_path
-        echo "    </dict>" >> $plist_path
-        echo "  </array>" >> $plist_path
-        echo "</dict>" >> $plist_path
-        echo "</plist>" >> $plist_path
-    
+        
+        echo "      </array>" >> "$plist_path"
+        echo "    </dict>" >> "$plist_path"
+        echo "  </array>" >> "$plist_path"
+        echo "</dict>" >> "$plist_path"
+        echo "</plist>" >> "$plist_path"
       env:
         REDIRECTS: ${{ env.REDIRECTS }}
         componentspath: ${{ env.componentspath }}
       
     - name: Run Cyan
       run: |
-        Cyan -i "${{ env.apollopath }}" -o "${{ env.componentspath }}/patched_apollo.ipa" -l "${{ env.componentspath }}/info.plist" -f "${{ env.apollo-arm }}" "${{ env.glass-arm }}"" -u -w
+        Cyan -i "${{ env.apollopath }}" -o "${{ env.componentspath }}/patched_apollo.ipa" -l "${{ env.componentspath }}/info.plist" -f "${{ env.apollo-arm }}" "${{ env.glass-arm }}" -u -w
         echo "patchedapollo=${{ env.componentspath }}/patched_apollo.ipa"
         echo "patchedapollo=${{ env.componentspath }}/patched_apollo.ipa" >> $GITHUB_ENV
       env:
