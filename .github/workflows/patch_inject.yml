@@ -31,8 +31,6 @@ jobs:
       run: |
         echo "APOLLOURL=${{ github.event.inputs.APOLLOURL }}" >> $GITHUB_ENV
         echo "PATCHGLASS=${{ github.event.inputs.PATCHGLASS }}" >> $GITHUB_ENV
-        GLASSREPO=$(echo "dankrichtofen/apolloliquidglass")
-        echo "GLASSREPO=$GLASSREPO" >> $GITHUB_ENV
         echo "APOLLOREPO=${{ github.event.inputs.APOLLOREPO }}" >> $GITHUB_ENV
         echo "REDIRECTS=${{ github.event.inputs.REDIRECTS }}" >> $GITHUB_ENV
         echo "componentspath=Build Components" >> $GITHUB_ENV
@@ -67,14 +65,6 @@ jobs:
       env:
           APOLLOREPO: ${{ env.APOLLOREPO }}
 
-    - name: Set GLASSTAG
-      run: |
-        echo "GLASSTAG not provided, fetching latest release tag..."
-        GLASSTAG=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ env.GLASSREPO }}/releases/latest | jq -r .tag_name)
-        echo "GLASSTAG=$GLASSTAG" >> $GITHUB_ENV
-      env:
-          GLASSREPO: ${{ env.GLASSREPO }}
-
     - name: Download ApolloPatcher .deb file from releases
       run: |
         apollo_asset=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ env.APOLLOREPO }}/releases/tags/${{ env.APOLLOTAG }} | jq -r '.assets[] | select(.name | startswith("ca.jeffrey.apollo-improvedcustomapi") and endswith("iphoneos-arm.deb")).browser_download_url')
@@ -87,19 +77,6 @@ jobs:
       env:
         APOLLOREPO: ${{ env.APOLLOREPO }}
         APOLLOTAG: ${{ env.APOLLOTAG }}
-
-    - name: Download GlassPatch .deb file from releases
-      run: |
-        glass_asset=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ env.GLASSREPO }}/releases/tags/${{ env.GLASSTAG }} | jq -r '.assets[] | select(.name | startswith("com.dankrichtofen.apollofix") and endswith("iphoneos-arm64.deb")).browser_download_url')
-        echo "Downloading From: $glass_asset"
-        # Download the file using curl
-        curl -LJO "$glass_asset"
-        downloaded_file=$(ls -t | head -n1)
-        mv "$downloaded_file" "Build Components/"
-        echo "glass-arm=Build Components/$downloaded_file" >> $GITHUB_ENV
-      env:
-        GLASSREPO: ${{ env.GLASSREPO }}
-        GLASSTAG: ${{ env.GLASSTAG }}
 
     - name: Create plist to merge
       run: |
@@ -144,14 +121,18 @@ jobs:
       
     - name: Run Cyan
       run: |
-        Cyan -i "${{ env.apollopath }}" -o "${{ env.componentspath }}/patched_apollo.ipa" -l "${{ env.componentspath }}/info.plist" -f "${{ env.apollo-arm }}" "${{ env.glass-arm }}" -u -w -gl
+        if [ "${{ env.patch-glass }}" = "true" ]; then
+          Cyan -i "${{ env.apollopath }}" -o "${{ env.componentspath }}/patched_apollo.ipa" -l "${{ env.componentspath }}/info.plist" -f "${{ env.apollo-arm }}" -u -w -gl
+        else
+          Cyan -i "${{ env.apollopath }}" -o "${{ env.componentspath }}/patched_apollo.ipa" -l "${{ env.componentspath }}/info.plist" -f "${{ env.apollo-arm }}" -u -w
+        fi
         echo "patchedapollo=${{ env.componentspath }}/patched_apollo.ipa"
         echo "patchedapollo=${{ env.componentspath }}/patched_apollo.ipa" >> $GITHUB_ENV
       env:
         apollopath: ${{ env.apollopath }}
         componentspath: ${{ env.componentspath }}
         apollo-arm: ${{ env.apollo-arm }}
-        glass-arm: ${{ env.glass-arm }}
+        patch-glass: ${{ env.patch-glass }}
       
     - name: Upload to Catbox (Without Hash)
       run: |
