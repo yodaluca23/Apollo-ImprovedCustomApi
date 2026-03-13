@@ -38,8 +38,8 @@ jobs:
         if [ "${{ github.event.inputs.PATCHGLASS }}" = "true" ]; then
             GL_FLAG="-gl"
         fi
-        echo "GL_FLAG=${{ github.event.inputs.GL_FLAG }}" >> $GITHUB_ENV
-
+        echo "GL_FLAG=$GL_FLAG" >> $GITHUB_ENV
+        
     - name: Set up Python 3.13
       uses: actions/setup-python@v5
       with:
