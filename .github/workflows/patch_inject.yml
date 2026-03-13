@@ -1,4 +1,4 @@
-name: Build and Release
+name: Inject and Upload
 
 on:
   workflow_dispatch:
@@ -43,7 +43,7 @@ jobs:
         python-version: '3.13'
 
     - name: Install Cyan
-      run: pipx install --force https://github.com/asdfzxcvbn/pyzule-rw/archive/main.zip
+      run: pipx install --force https://github.com/SpotCompiled/pyzule-rw/archive/main.zip
         
     - name: Create Build Components folder
       run: mkdir -p "Build Components"
@@ -144,7 +144,7 @@ jobs:
       
     - name: Run Cyan
       run: |
-        Cyan -i "${{ env.apollopath }}" -o "${{ env.componentspath }}/patched_apollo.ipa" -l "${{ env.componentspath }}/info.plist" -f "${{ env.apollo-arm }}" "${{ env.glass-arm }}" -u -w
+        Cyan -i "${{ env.apollopath }}" -o "${{ env.componentspath }}/patched_apollo.ipa" -l "${{ env.componentspath }}/info.plist" -f "${{ env.apollo-arm }}" "${{ env.glass-arm }}" -u -w -gl
         echo "patchedapollo=${{ env.componentspath }}/patched_apollo.ipa"
         echo "patchedapollo=${{ env.componentspath }}/patched_apollo.ipa" >> $GITHUB_ENV
       env:
