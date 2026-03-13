@@ -121,11 +121,7 @@ jobs:
       
     - name: Run Cyan
       run: |
-        if [ "${{ env.patch-glass }}" = "true" ]; then
-          Cyan -i "${{ env.apollopath }}" -o "${{ env.componentspath }}/patched_apollo.ipa" -l "${{ env.componentspath }}/info.plist" -f "${{ env.apollo-arm }}" -u -w -gl
-        else
-          Cyan -i "${{ env.apollopath }}" -o "${{ env.componentspath }}/patched_apollo.ipa" -l "${{ env.componentspath }}/info.plist" -f "${{ env.apollo-arm }}" -u -w
-        fi
+        Cyan -i "${{ env.apollopath }}" -o "${{ env.componentspath }}/patched_apollo.ipa" -l "${{ env.componentspath }}/info.plist" -f "${{ env.apollo-arm }}" -u -w ${{ github.event.inputs.patch-glass && '-gl' }}
         echo "patchedapollo=${{ env.componentspath }}/patched_apollo.ipa"
         echo "patchedapollo=${{ env.componentspath }}/patched_apollo.ipa" >> $GITHUB_ENV
       env:
@@ -133,7 +129,7 @@ jobs:
         componentspath: ${{ env.componentspath }}
         apollo-arm: ${{ env.apollo-arm }}
         patch-glass: ${{ env.patch-glass }}
-      
+
     - name: Upload to Catbox (Without Hash)
       run: |
         RELEASEURL=$(curl -F "reqtype=fileupload" -F "fileToUpload=@${{ env.patchedapollo }}" https://catbox.moe/user/api.php)
