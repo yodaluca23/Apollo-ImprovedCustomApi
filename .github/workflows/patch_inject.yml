@@ -34,6 +34,11 @@ jobs:
         echo "APOLLOREPO=${{ github.event.inputs.APOLLOREPO }}" >> $GITHUB_ENV
         echo "REDIRECTS=${{ github.event.inputs.REDIRECTS }}" >> $GITHUB_ENV
         echo "componentspath=Build Components" >> $GITHUB_ENV
+        GL_FLAG=""
+        if [ "${{ github.event.inputs.PATCHGLASS }}" = "true" ]; then
+            GL_FLAG="-gl"
+        fi
+        echo "GL_FLAG=${{ github.event.inputs.GL_FLAG }}" >> $GITHUB_ENV
 
     - name: Set up Python 3.13
       uses: actions/setup-python@v5
@@ -121,14 +126,14 @@ jobs:
       
     - name: Run Cyan
       run: |
-        Cyan -i "${{ env.apollopath }}" -o "${{ env.componentspath }}/patched_apollo.ipa" -l "${{ env.componentspath }}/info.plist" -f "${{ env.apollo-arm }}" -u -w ${{ github.event.inputs.patch-glass && '-gl' }}
+        Cyan -i "${{ env.apollopath }}" -o "${{ env.componentspath }}/patched_apollo.ipa" -l "${{ env.componentspath }}/info.plist" -f "${{ env.apollo-arm }}" -u -w ${{ env.GL_FLAG }}
         echo "patchedapollo=${{ env.componentspath }}/patched_apollo.ipa"
         echo "patchedapollo=${{ env.componentspath }}/patched_apollo.ipa" >> $GITHUB_ENV
       env:
         apollopath: ${{ env.apollopath }}
         componentspath: ${{ env.componentspath }}
         apollo-arm: ${{ env.apollo-arm }}
-        patch-glass: ${{ env.patch-glass }}
+        GL_FLAG: ${{ env.GL_FLAG }}
 
     - name: Upload to Catbox (Without Hash)
       run: |
