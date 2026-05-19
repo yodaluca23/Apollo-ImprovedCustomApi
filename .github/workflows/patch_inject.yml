@@ -142,3 +142,12 @@ jobs:
         echo "RELEASEURL=$RELEASEURL" >> $GITHUB_ENV
       env:
         patchedapollo: ${{ env.patchedapollo }}
+
+    - name: Upload to GitHub Actions Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: patched-apollo-ipa
+        path: ${{ env.patchedapollo }}
+        retention-days: 30
+      env:
+        patchedapollo: ${{ env.patchedapollo }}
